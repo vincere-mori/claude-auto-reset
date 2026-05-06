@@ -6,6 +6,34 @@ param(
 $dir = Join-Path $env:LOCALAPPDATA 'claude-auto-reset'
 $fEpoch = Join-Path $dir 'next_ping_epoch.txt'
 $fSteps = Join-Path $dir 'backoff_steps.txt'
+$fFlag = Join-Path $dir 'scheduler_once_active.flag'
+
+function Invoke-SchedulerOnceAt([int64]$UntilUnix) {
+    $bat = $env:CAR_SELF
+    if (-not $bat) { return }
+    $bat = $bat.Trim()
+    if (-not (Test-Path -LiteralPath $bat)) { return }
+    $script = Join-Path $PSScriptRoot 'scheduler.ps1'
+    if (-not (Test-Path -LiteralPath $script)) { return }
+    & $script -Mode OnceAt -UntilUnix $UntilUnix -BatPath $bat
+}
+
+function Invoke-SchedulerRestoreIfFlag() {
+    if (-not (Test-Path -LiteralPath $fFlag)) { return }
+    $bat = $env:CAR_SELF
+    if (-not $bat) {
+        Remove-Item -LiteralPath $fFlag -Force -ErrorAction SilentlyContinue
+        return
+    }
+    $bat = $bat.Trim()
+    if (-not (Test-Path -LiteralPath $bat)) {
+        Remove-Item -LiteralPath $fFlag -Force -ErrorAction SilentlyContinue
+        return
+    }
+    $script = Join-Path $PSScriptRoot 'scheduler.ps1'
+    if (-not (Test-Path -LiteralPath $script)) { return }
+    & $script -Mode RestoreRecurring -BatPath $bat
+}
 
 function Get-DoubleEnv([string]$name, [double]$default) {
     $raw = [Environment]::GetEnvironmentVariable($name, 'Process')
@@ -155,6 +183,7 @@ switch ($Verb) {
     'clear' {
         Remove-Item -LiteralPath $fEpoch -Force -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath $fSteps -Force -ErrorAction SilentlyContinue
+        Invoke-SchedulerRestoreIfFlag
         exit 0
     }
     'set' {
@@ -171,6 +200,7 @@ switch ($Verb) {
             Remove-Item -LiteralPath $fSteps -Force -ErrorAction SilentlyContinue
             $when = $resetAt.LocalDateTime
             Write-Host ("cooldown until ~{0:yyyy-MM-dd HH:mm:ss} local (from resets line)" -f $when)
+            Invoke-SchedulerOnceAt $until
             exit 0
         }
 
@@ -199,6 +229,7 @@ switch ($Verb) {
         $when2 = ([DateTimeOffset]::FromUnixTimeSeconds($until2)).LocalDateTime
         $tag = if ($bumpStep) { 'exponential backoff' } else { 'from api text' }
         Write-Host ("cooldown ~{0:0.#} h ({1}), until {2:yyyy-MM-dd HH:mm:ss} local" -f $span.TotalHours, $tag, $when2)
+        Invoke-SchedulerOnceAt $until2
         exit 0
     }
 }

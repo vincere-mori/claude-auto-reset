@@ -1,5 +1,6 @@
 @echo off
 chcp 65001 >nul 2>&1
+set "CAR_SELF=%~f0"
 if /i "%~1"=="schedule-install" goto schedule_install
 if /i "%~1"=="schedule-remove" goto schedule_remove
 
@@ -73,8 +74,8 @@ rem --- Task Scheduler helpers ---
 :schedule_install
 set "SELF=%~f0"
 set "TN=claude-auto-reset"
-echo creating task "%TN%" every 4 hours as current user
-schtasks /create /f /tn "%TN%" /sc HOURLY /mo 4 /rl LIMITED /tr "cmd.exe /c call \"%SELF%\"" || (
+echo creating task "%TN%" every 4h 50m as current user
+schtasks /create /f /tn "%TN%" /sc MINUTE /mo 290 /rl LIMITED /tr "cmd.exe /c call \"%SELF%\"" || (
   echo failed. Run schedule-install from cmd as admin or create task manually in taskschd.msc
   exit /b 1
 )

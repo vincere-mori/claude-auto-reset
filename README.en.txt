@@ -10,7 +10,7 @@ Windows
 
    Double-click or run from cmd.
 
-2) Install Task Scheduler entry (every 4 hours, task name claude-auto-reset):
+2) Install Task Scheduler entry (every 4h 50m, task name claude-auto-reset):
 
    windows\schedule-install.bat
 
@@ -20,8 +20,10 @@ Windows
 
    From cmd: ping-claude.bat schedule-install  /  ping-claude.bat schedule-remove
 
-3) Limit cooldown is handled by `windows\internal\` (do not run those scripts by
-   hand; only ping-claude.bat calls them — parses replies like «resets …»).
+3) Limit cooldown + optional Task Scheduler retiming live under `windows\internal\`
+   (do not run by hand). On limit, the task may switch to a one-shot run near the
+   reset time. After a successful ping, `schedule-install` runs again to bring back
+   the every-4h50m schedule when that one-shot mode was used.
 
 Console messages from these .bat files are in English so they display correctly in
 every Windows cmd code page.
