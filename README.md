@@ -27,15 +27,20 @@
 
 | ОС | Файл |
 |----|------|
-| Windows | `windows/ping-claude.bat` |
+| Windows (пинг один раз) | `windows/ping-claude.bat` |
+| Windows (задача в планировщике двойным кликом) | `windows/schedule-install.bat` / снять: `windows/schedule-remove.bat` |
 | Linux | `linux/ping-claude.sh` |
 | macOS | `macos/ping-claude.sh` |
+
+Пауза при исчерпании лимита: логика во вложенной папке **`windows/internal/`**, трогать вручную не нужно — вызывает только `ping-claude.bat`.
+
+Краткие шпаргалки по файлам: **`README.ru.txt`** (русский) и **`README.en.txt`** (English). Содержание одно и то же. В корне **`README.txt`** — только указатель на эти два файла.
 
 **Linux / macOS:** после `git clone` скрипты уже исполняемые. Если скачал zip и `permission denied` - из корня репо один раз: `bash install.sh`.
 
 ## Автопостановка расписания
 
-**Windows:** из cmd или двойным кликом не очень работает второй аргумент, так что запускай из **cmd**:
+**Windows:** проще **`windows/schedule-install.bat`** двойным кликом (он вызывает `ping-claude.bat schedule-install`). Либо из **cmd**:
 
 ```bat
 "C:\полный\путь\к\repo\windows\ping-claude.bat" schedule-install

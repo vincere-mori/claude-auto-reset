@@ -1,2 +1,2 @@
-# чтобы shebang не ломался и лишний CR не летел
+# keep shebang sane and LF on shell scripts
 *.sh text eol=lf
